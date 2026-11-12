@@ -11,6 +11,14 @@ A merchant pastes their products in any format. Shopfront:
 3. **Takes payment with PayPal** on a hosted checkout page (PayPal JS SDK, sandbox).
 4. **Shows the merchant what AI agents did**: orders placed, questions asked, and the questions the listings *couldn't* answer, each with a suggested fix.
 
+## Screenshots
+
+| Merchant onboarding (Gemini writes the listings) | PayPal checkout link an agent hands the buyer |
+|---|---|
+| ![Onboarding](docs/screenshots/1-onboarding.png) | ![Checkout](docs/screenshots/2-checkout.png) |
+| **Merchant dashboard with listing gaps** | **Every question AI agents asked** |
+| ![Dashboard](docs/screenshots/3-dashboard.png) | ![Agent activity](docs/screenshots/4-agent-activity.png) |
+
 ## How it works
 
 ```
@@ -39,7 +47,7 @@ POST /api/carts/:id/paid ──▶ merchant dashboard (orders, agent questions, 
 - **PayPal JS SDK (Orders)** on `public/pay.html`: `actions.order.create` with itemised `purchase_units`, buyer approval, then `actions.order.capture`.
 - The captured order (id, status, amount, payer) is sent to the server, which checks status and amount against its own cart before marking it paid.
 
-### Where AI is used (Google Gemini, `gemini-flash-latest`)
+### Where AI is used (Google Gemini, `gemini-flash-lite-latest`)
 
 - Turning raw merchant notes into structured listings (`generateListings`).
 - Answering agent questions strictly from shop data (`answerQuestion`).
