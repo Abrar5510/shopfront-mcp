@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Shopfront</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="top"><a class="brand" href="/">Shop<span>front</span></a><span id="live" class="tag">Live</span></header>
+  <h1 id="shopName">Dashboard</h1>
+  <p class="lead">Connector URL for AI assistants: <code id="mcpUrl" class="url"></code></p>
+
+  <div class="grid three" style="margin-bottom:16px">
+    <div class="card stat hero"><h2>Earned from AI agents</h2><b id="revenue">$0.00</b></div>
+    <div class="card stat"><h2>Paid orders</h2><b id="orderCount">0</b></div>
+    <div class="card stat"><h2>Checkouts awaiting payment</h2><b id="pending">0</b></div>
+  </div>
+
+  <div class="grid two">
+    <section class="card"><h2>Orders placed by AI agents</h2><div id="orders"></div></section>
+    <section class="card"><h2>Listing gaps: what agents wanted and couldn't find</h2><div id="gaps"></div></section>
+  </div>
+  <section class="card" style="margin-top:16px"><h2>What agents asked</h2><div id="events"></div></section>
+</main>
+<script type="module">
+import { api, el, money } from "./app.js";
+
+const slug = new URLSearchParams(location.search).get("shop") || "sweet-crumb-bakery";
+const base = `/api/shops/${encodeURIComponent(slug)}`;
+const $ = (id) => document.getElementById(id);
+const time = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const empty = (text) => el("p", { class: "muted" }, text);
+const TOOL_LABEL = { shop_info: "Read policies", search_products: "Searched", ask_shop: "Asked", create_checkout: "Started checkout" };
+
+let seenOrders = null; // ids already on screen, so only new orders flash
+let lastMissCount = -1;
+
+function renderOrders(orders) {
+  const fresh = (id) => seenOrders !== null && !seenOrders.has(id);
+  $("orders").replaceChildren(...(orders.length ? orders.map((o) => el("div", { class: fresh(o.id) ? "row fresh" : "row" },
+    el("div", {}, o.items.map((i) => `${i.qty} × ${i.name}`).join(", "),
+      el("div", { class: "sub" }, `${time(o.paidAt)} · ${o.payer.name} · PayPal ${o.paypalOrderId}${o.note ? ` · “${o.note}”` : ""}`)),
+    el("div", {}, el("strong", {}, money(o.total))))) : [empty("No orders yet. They appear here the moment a buyer pays.")]));
+  seenOrders = new Set(orders.map((o) => o.id));
+}
+
+function renderEvents(events) {
+  $("events").replaceChildren(...(events.length ? events.map((e) => {
+    const miss = e.hits === 0 || e.answered === false;
+    return el("div", { class: "row" },
+      el("div", {}, `${TOOL_LABEL[e.tool] ?? e.tool}${e.text ? `: ${e.text}` : ""}`, el("div", { class: "sub" }, time(e.at))),
+      miss ? el("span", { class: "tag miss" }, "No answer") : null);
+  }) : [empty("No agent activity yet.")]));
+}
+
+async function renderGaps() {
+  const { gaps } = await api(`${base}/insights`);
+  $("gaps").replaceChildren(...(gaps.length ? gaps.map((g) => el("div", { class: "gap" },
+    el("p", {}, el("strong", {}, g.want), ` · asked ${g.count}×`), el("p", { class: "muted" }, g.fix)))
+    : [empty("Nothing missing so far. When agents ask for something your listings don't cover, the fix shows up here.")]));
+}
+
+async function refresh() {
+  try {
+    const activity = await api(`${base}/activity`);
+    $("revenue").textContent = money(activity.revenue);
+    $("orderCount").textContent = activity.orders.length;
+    $("pending").textContent = activity.pendingCheckouts;
+    renderOrders(activity.orders);
+    renderEvents(activity.events);
+    const missCount = activity.events.filter((e) => e.hits === 0 || e.answered === false).length;
+    if (missCount !== lastMissCount) { lastMissCount = missCount; await renderGaps(); }
+    $("live").textContent = "Live";
+  } catch {
+    $("live").textContent = "Reconnecting…";
+  }
+}
+
+try {
+  const shop = await api(base);
+  $("shopName").textContent = shop.name;
+  $("mcpUrl").textContent = shop.mcpUrl;
+  document.title = `${shop.name} · Shopfront`;
+  await refresh();
+  setInterval(refresh, 3000);
+} catch (err) {
+  $("shopName").textContent = "Shop not found";
+  document.querySelector(".lead").textContent = err.message;
+}
+</script>
+</body>
+</html>

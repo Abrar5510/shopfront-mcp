@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout · Shopfront</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="narrow">
+  <header class="top"><a class="brand" href="/">Shop<span>front</span></a><span class="tag">PayPal sandbox</span></header>
+  <div id="view" class="card" aria-live="polite"><p class="muted">Loading your order…</p></div>
+</main>
+<script type="module">
+import { api, el, money } from "./app.js";
+
+const view = document.getElementById("view");
+const cartId = new URLSearchParams(location.search).get("cart");
+
+function summary(cart) {
+  return [
+    el("h2", {}, cart.shopName),
+    ...cart.items.map((i) => el("div", { class: "row" },
+      el("div", {}, i.name, el("div", { class: "sub" }, `${i.qty} × ${money(i.price)}`)),
+      el("div", {}, money(i.price * i.qty)))),
+    cart.note ? el("p", { class: "muted" }, `Note for the shop: ${cart.note}`) : null,
+    el("div", { class: "row total" }, el("div", {}, "Total"), el("div", {}, money(cart.total))),
+  ];
+}
+
+function showReceipt(cart) {
+  view.replaceChildren(
+    el("h1", {}, "Paid. Thank you!"),
+    el("p", { class: "lead" }, `${cart.shopName} has your order.`),
+    ...summary(cart),
+    el("p", { class: "muted" }, `PayPal order ${cart.paypalOrderId}`));
+}
+
+function loadPayPal(clientId) {
+  return new Promise((resolve, reject) => {
+    const script = el("script", { src: `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&components=buttons` });
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Couldn't load PayPal. Check your connection and reload."));
+    document.head.append(script);
+  });
+}
+
+async function start() {
+  if (!cartId) throw new Error("This checkout link is missing its cart.");
+  const cart = await api(`/api/carts/${encodeURIComponent(cartId)}`);
+  if (cart.status === "paid") return showReceipt(cart);
+
+  const buttons = el("div", { id: "paypal-buttons", style: "margin-top:20px" });
+  const problem = el("div", { class: "error", hidden: "" });
+  view.replaceChildren(el("h1", {}, "Review and pay"), ...summary(cart), buttons, problem);
+  const fail = (message) => { problem.textContent = message; problem.hidden = false; };
+
+  const { paypalClientId } = await api("/api/config");
+  await loadPayPal(paypalClientId);
+  const usd = (n) => ({ currency_code: "USD", value: Number(n).toFixed(2) });
+
+  paypal.Buttons({
+    createOrder: (data, actions) => actions.order.create({
+      purchase_units: [{
+        reference_id: cart.id,
+        description: `Order from ${cart.shopName}`.slice(0, 127),
+        amount: { ...usd(cart.total), breakdown: { item_total: usd(cart.total) } },
+        items: cart.items.map((i) => ({ name: i.name.slice(0, 127), quantity: String(i.qty), unit_amount: usd(i.price) })),
+      }],
+    }),
+    onApprove: async (data, actions) => {
+      try {
+        const order = await actions.order.capture();
+        await api(`/api/carts/${encodeURIComponent(cart.id)}/paid`, order);
+        showReceipt({ ...cart, paypalOrderId: order.id });
+      } catch (err) {
+        fail(`${err.message} If you were charged, contact the shop with this reference: ${data.orderID}.`);
+      }
+    },
+    onError: () => fail("Payment didn't go through. Nothing was charged. Please try again."),
+  }).render("#paypal-buttons");
+}
+
+start().catch((err) => view.replaceChildren(el("h1", {}, "We couldn't open this checkout"), el("p", { class: "lead" }, err.message)));
+</script>
+</body>
+</html>

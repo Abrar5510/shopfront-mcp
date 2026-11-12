@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopfront · Make your shop buyable by AI agents</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="top">
+    <a class="brand" href="/">Shop<span>front</span></a>
+    <a href="dash.html?shop=sweet-crumb-bakery">See the demo shop's dashboard →</a>
+  </header>
+
+  <h1>Let AI assistants sell for your shop.</h1>
+  <p class="lead">Paste your products however you have them. Shopfront writes listings AI agents can understand, gives your shop its own connector, and takes payment with PayPal.</p>
+
+  <div class="grid two">
+    <form id="form" class="card">
+      <h2>1. Tell us about your shop</h2>
+      <label for="name">Shop name</label>
+      <input id="name" required minlength="2" maxlength="60" placeholder="Clay Corner Pottery" autocomplete="organization">
+      <label for="policies">Policies <small>(pickup, delivery, refunds, lead time)</small></label>
+      <input id="policies" maxlength="2000" placeholder="Ships in 3 days. Free returns within 14 days.">
+      <label for="products">Products <small>(one per line, with a price)</small></label>
+      <textarea id="products" required placeholder="Blue stoneware mug - $18 - 350ml, dishwasher safe&#10;Small planter - $25 - drainage hole, 12cm wide"></textarea>
+      <div style="margin-top:16px"><button id="submit">Create my shopfront</button></div>
+      <div id="error" class="error" role="alert" hidden></div>
+    </form>
+
+    <section id="result" class="card" aria-live="polite">
+      <h2>2. Connect it to an AI assistant</h2>
+      <p class="muted">Your shop's connector URL will appear here. Add it as a custom connector in an AI assistant and ask it to shop.</p>
+    </section>
+  </div>
+</main>
+<script type="module">
+import { api, el, money } from "./app.js";
+
+const form = document.getElementById("form");
+const submit = document.getElementById("submit");
+const error = document.getElementById("error");
+const result = document.getElementById("result");
+const value = (id) => document.getElementById(id).value;
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  error.hidden = true;
+  submit.disabled = true;
+  submit.textContent = "Writing your listings…";
+  try {
+    const shop = await api("/api/shops", { name: value("name"), policies: value("policies"), products: value("products") });
+    const copy = el("button", { class: "ghost", type: "button" }, "Copy URL");
+    copy.onclick = async () => { await navigator.clipboard.writeText(shop.mcpUrl); copy.textContent = "Copied"; };
+    result.replaceChildren(
+      el("h2", {}, "2. Connect it to an AI assistant"),
+      el("p", {}, "Your shop is live. Add this URL as a custom connector:"),
+      el("code", { class: "url" }, shop.mcpUrl),
+      el("p", {}, copy, " ", el("a", { href: shop.dashboardUrl }, "Open your dashboard →")),
+      el("h2", { style: "margin-top:22px" }, `${shop.products.length} listings created`),
+      ...shop.products.map((p) => el("div", { class: "row" },
+        el("div", {}, p.name, el("div", { class: "sub" }, p.description)), el("div", {}, money(p.price)))));
+  } catch (err) {
+    error.textContent = err.message;
+    error.hidden = false;
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "Create my shopfront";
+  }
+});
+</script>
+</body>
+</html>
