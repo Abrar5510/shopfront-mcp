@@ -25,7 +25,7 @@ function summary(cart) {
       el("div", {}, money(i.price * i.qty)))),
     cart.note ? el("p", { class: "muted" }, `Note for the shop: ${cart.note}`) : null,
     el("div", { class: "row total" }, el("div", {}, "Total"), el("div", {}, money(cart.total))),
-  ];
+  ].filter(Boolean);
 }
 
 function showReceipt(cart) {

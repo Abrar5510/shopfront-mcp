@@ -7,7 +7,7 @@ services:
     startCommand: npm start
     healthCheckPath: /api/config
     envVars:
-      - key: ANTHROPIC_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
       - key: PAYPAL_CLIENT_ID
         value: sb

@@ -6,7 +6,7 @@ People increasingly ask an AI assistant where to buy things. A neighbourhood bak
 
 A merchant pastes their products in any format. Shopfront:
 
-1. **Writes agent-readable listings** with Claude (allergens, dietary info, sizes, lead times).
+1. **Writes agent-readable listings** with Gemini (allergens, dietary info, sizes, lead times).
 2. **Gives the shop its own MCP server**, so any MCP-capable assistant can search the catalog, ask questions and start a checkout.
 3. **Takes payment with PayPal** on a hosted checkout page (PayPal JS SDK, sandbox).
 4. **Shows the merchant what AI agents did**: orders placed, questions asked, and the questions the listings *couldn't* answer, each with a suggested fix.
@@ -39,13 +39,13 @@ POST /api/carts/:id/paid ──▶ merchant dashboard (orders, agent questions, 
 - **PayPal JS SDK (Orders)** on `public/pay.html`: `actions.order.create` with itemised `purchase_units`, buyer approval, then `actions.order.capture`.
 - The captured order (id, status, amount, payer) is sent to the server, which checks status and amount against its own cart before marking it paid.
 
-### Where AI is used (Claude, `claude-haiku-5-5`)
+### Where AI is used (Google Gemini, `gemini-flash-latest`)
 
 - Turning raw merchant notes into structured listings (`generateListings`).
 - Answering agent questions strictly from shop data (`answerQuestion`).
 - Grouping unanswered requests into listing fixes (`summarizeGaps`).
 
-All three live in `lib/ai.js`. Each has a plain fallback so the app still runs without an API key.
+All three live in `lib/ai.js`. Each has a plain fallback, so the app still runs without an API key or when the Gemini free tier's rate limit is hit (the server log says when that happens).
 
 ## Run it
 
@@ -53,7 +53,7 @@ Requires Node 20+.
 
 ```bash
 npm install
-cp .env.example .env   # add ANTHROPIC_API_KEY (optional, see above)
+cp .env.example .env   # add GEMINI_API_KEY (optional, see above)
 npm start
 ```
 
@@ -87,7 +87,7 @@ npm test
 server.js          HTTP routes: API, MCP endpoint, static pages
 lib/shop.js        Pure logic: search, cart totals, capture checks (unit-tested)
 lib/mcp.js         The per-shop MCP server and its four tools
-lib/ai.js          Claude calls and their fallbacks
+lib/ai.js          Gemini calls and their fallbacks
 lib/store.js       JSON-file storage
 public/            index.html (onboarding), pay.html (checkout), dash.html (dashboard)
 seed.json          Demo shop loaded on first run
@@ -97,7 +97,7 @@ render.yaml        One-click Render deploy
 
 ## Deploy (Render)
 
-`render.yaml` is included: New → Blueprint → pick this repo, then set `ANTHROPIC_API_KEY`. The free tier's disk resets on restart, so the demo shop from `seed.json` comes back on every boot.
+`render.yaml` is included: New → Blueprint → pick this repo, then set `GEMINI_API_KEY`. The free tier's disk resets on restart, so the demo shop from `seed.json` comes back on every boot.
 
 ## Known limits
 
