@@ -1,0 +1,54 @@
+{
+  "shops": {
+    "sweet-crumb-bakery": {
+      "name": "Sweet Crumb Bakery",
+      "policies": "Pickup only at 14 Orchard Lane, Tuesday to Saturday, 8am to 5pm. Orders need one day of notice. We bake in a kitchen that also handles nuts, wheat, eggs and dairy. Full refund if you cancel at least 24 hours before pickup.",
+      "products": [
+        {
+          "id": "p1",
+          "name": "Gluten-free vanilla cupcakes (dozen)",
+          "price": 36,
+          "description": "Twelve vanilla cupcakes made with rice and almond flour, topped with vanilla buttercream. Baked the morning of pickup.",
+          "attributes": { "dietary": ["gluten-free"], "allergens": ["egg", "dairy", "almond"], "servings": 12, "leadTimeDays": 1 }
+        },
+        {
+          "id": "p2",
+          "name": "Classic chocolate cupcakes (dozen)",
+          "price": 30,
+          "description": "Twelve dark chocolate cupcakes with whipped chocolate frosting. Our best seller for birthdays.",
+          "attributes": { "dietary": [], "allergens": ["wheat", "egg", "dairy"], "servings": 12, "leadTimeDays": 1 }
+        },
+        {
+          "id": "p3",
+          "name": "Sourdough country loaf",
+          "price": 9,
+          "description": "A 900g naturally leavened loaf with a crisp crust. Made with flour, water and salt only.",
+          "attributes": { "dietary": ["vegan", "dairy-free"], "allergens": ["wheat"], "weightGrams": 900, "leadTimeDays": 1 }
+        },
+        {
+          "id": "p4",
+          "name": "Lemon celebration cake (8 inch)",
+          "price": 48,
+          "description": "Three layers of lemon sponge with lemon curd and cream cheese frosting. Serves 12 to 14. A short message can be piped on top.",
+          "attributes": { "dietary": [], "allergens": ["wheat", "egg", "dairy"], "servings": 14, "customMessage": true, "leadTimeDays": 2 }
+        },
+        {
+          "id": "p5",
+          "name": "Oat and raisin cookies (box of 6)",
+          "price": 12,
+          "description": "Six large chewy oat cookies with raisins and cinnamon. Made without eggs or dairy.",
+          "attributes": { "dietary": ["vegan", "dairy-free"], "allergens": ["wheat", "oats"], "servings": 6, "leadTimeDays": 1 }
+        },
+        {
+          "id": "p6",
+          "name": "Morning pastry box (6 pieces)",
+          "price": 22,
+          "description": "Two butter croissants, two cinnamon swirls and two fruit danishes. Best eaten the same day.",
+          "attributes": { "dietary": [], "allergens": ["wheat", "egg", "dairy"], "servings": 6, "leadTimeDays": 1 }
+        }
+      ]
+    }
+  },
+  "carts": {},
+  "events": []
+}
