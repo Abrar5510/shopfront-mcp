@@ -1,0 +1,7 @@
+.env
+data.json
+BUILDPLAN.md
+HACKATHON.md
+SUBMISSION.md
+node_modules
+.env.local

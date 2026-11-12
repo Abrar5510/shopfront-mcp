@@ -7,3 +7,5 @@ data.json
 BUILDPLAN.md
 HACKATHON.md
 SUBMISSION.md
+.vercel
+.env*

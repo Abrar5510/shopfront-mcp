@@ -126,4 +126,9 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.status === 400 ? "Invalid request body." : "Something went wrong on our side." });
 });
 
-app.listen(PORT, () => console.log(`Shopfront MCP on http://localhost:${PORT} (AI ${aiEnabled ? "on" : "off: fallback mode"})`));
+// Vercel imports the app and runs it as a function; everywhere else it listens on a port.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`Shopfront MCP on http://localhost:${PORT} (AI ${aiEnabled ? "on" : "off: fallback mode"})`));
+}
+
+export default app;

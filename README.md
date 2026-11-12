@@ -11,6 +11,13 @@ A merchant pastes their products in any format. Shopfront:
 3. **Takes payment with PayPal** on a hosted checkout page (PayPal JS SDK, sandbox).
 4. **Shows the merchant what AI agents did**: orders placed, questions asked, and the questions the listings *couldn't* answer, each with a suggested fix.
 
+## Live demo
+
+**https://shopfront-mcp.vercel.app** (PayPal sandbox; no account or keys needed)
+
+- Dashboard: https://shopfront-mcp.vercel.app/dash.html?shop=sweet-crumb-bakery
+- MCP connector URL: `https://shopfront-mcp.vercel.app/mcp/sweet-crumb-bakery`
+
 ## Screenshots
 
 | Merchant onboarding (Gemini writes the listings) | PayPal checkout link an agent hands the buyer |
@@ -100,12 +107,15 @@ lib/store.js       JSON-file storage
 public/            index.html (onboarding), pay.html (checkout), dash.html (dashboard)
 seed.json          Demo shop loaded on first run
 test/              node:test unit tests
+api/index.js       Vercel function entry (vercel.json routes /api and /mcp to it)
 render.yaml        One-click Render deploy
 ```
 
-## Deploy (Render)
+## Deploy
 
-`render.yaml` is included: New → Blueprint → pick this repo, then set `GEMINI_API_KEY`. The free tier's disk resets on restart, so the demo shop from `seed.json` comes back on every boot.
+**Vercel** (how the live demo runs): `vercel link`, `vercel env add GEMINI_API_KEY production`, then `vercel deploy --prod`. On Vercel only `/tmp` is writable and it belongs to one function instance, so demo data (new shops, carts, orders) resets when the instance goes idle; the seed shop always comes back. Use a database for real use.
+
+**Render:** `render.yaml` is included: New → Blueprint → pick this repo, then set `GEMINI_API_KEY`. The free tier's disk resets on restart, so the demo shop from `seed.json` comes back on every boot.
 
 ## Known limits
 
