@@ -3,3 +3,7 @@ data.json
 .env
 .DS_Store
 ._*
+# Private planning notes, kept locally only
+BUILDPLAN.md
+HACKATHON.md
+SUBMISSION.md
